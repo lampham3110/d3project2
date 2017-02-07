@@ -1,0 +1,82 @@
+<!--
+
+-->
+<!DOCTYPE html>
+<meta charset= "utf-8">
+<style>
+
+.bar:hover{
+    fill:lightblue;
+}
+.axis--x path{
+    display: none;
+}
+p{
+    font-size: 24px;
+}
+</style>
+<head>
+<p align="center"><b> Maximum(x) vs Minimum Temperature (y) of each month in Boston from 2010-2016</b></p>
+</head>
+<svg width="1000" height="600"></svg>
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script>
+//Set margins, height, width///
+var svg = d3.select("svg"),
+    margin = {top: 50, right: 10, bottom: 50, left: 100},
+    width = +svg.attr("width") - margin.left - margin.right,
+    height = +svg.attr("height") - margin.top - margin.bottom;
+var x = d3.scaleBand().range([0, width + 1000]).padding(0.1),
+    y = d3.scaleLinear().range([height, 0]);
+var g = svg.append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+var colors = d3.scaleOrdinal()
+    .range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b"]);
+//Load D3.js//
+d3.csv("temperature.csv", function(d){
+    d.MinValue = +d.MinValue;
+    return d;
+}, function(error, data){
+    if(error) throw error;
+    x.domain(data.map(function(d) {
+        return d.MaxValue;
+    }));
+    y.domain([0, d3.max(data, function(d){
+        return d.MinValue;
+    })]);
+    // Create X-axis
+    g.append("g")
+        .attr("class","axis axis -x")
+        .attr("transform", "translate(0," + height + ")")
+        .call(d3.axisBottom(x).ticks(100))
+    //Create Y-axis
+    g.append("g")
+        .attr("class", "axis axis -y")
+        .call(d3.axisLeft(y).ticks(5))
+    ///Generate bar chart//
+    g.selectAll(".bar")
+        .data(data)
+        .enter().append("rect")
+            .attr("class","bar")
+            .attr("x", function(d) {
+                return x(d.MaxValue);
+            })
+            .attr("y", function(d) {
+                return y(d.MinValue);
+            })
+            .attr("width", x.bandwidth())
+            .attr("fill", function(d){
+                return colors(d.MaxValue);
+            })
+            .attr("height", function(d){
+                return height - y(d.MinValue); 
+            });
+    
+    var color = g.append("g")
+        .selectAll("g")
+        .enter().append("g")
+        .attr("transform", function(d, i){
+            return "translate(0," + i * 10 + ")";
+        });
+});
+</script>
